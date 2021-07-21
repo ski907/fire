@@ -1,4 +1,4 @@
-#Original code and concept by Christian
+#Original code and concept by Christian Hill
 #https://scipython.com/blog/the-forest-fire-model/
 #Accessed July 2021
 #
@@ -83,7 +83,12 @@ def sim(X):
                     X1[y,x] = TREE
     return X1
                         
-                
+def get_areas(X):
+    total_area = X.size
+    forest_area = np.count_nonzero(X == TREE)/total_area
+    open_area = np.count_nonzero(X == EMPTY)/total_area
+    burn_area = np.count_nonzero(X == FIRE)/total_area
+    return forest_area, open_area, burn_area       
 
 def adjacent(y: int, x: int):
     adj = [(1,0),(0,1),(-1,0),(0,-1)]
@@ -101,15 +106,28 @@ norm = colors.BoundaryNorm(bounds, cmap.N)
 
 
 fig = plt.figure(figsize=(25/3, 6.25))
-ax = fig.add_subplot(111)
-ax.set_axis_off()
-im = ax.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
+ax1 = fig.add_subplot(121)
+ax2 = fig.add_subplot(122)
+ax1.set_axis_off()
+im = ax1.imshow(X, cmap=cmap, norm=norm)#, interpolation='nearest')
+forest_areas, open_areas, burn_areas = [], [], []
+g1, = ax2.plot([],open_areas)
+g2, = ax2.plot([],forest_areas)
+g3, = ax2.plot([],burn_areas)
 the_plot = st.pyplot(plt)
 
 
 # The animation function: called to produce a frame for each generation.
 def animate():
     im.set_data(animate.X)
+    forest_area, open_area, burn_area = get_areas(animate.X)
+    open_areas.append(open_area)
+    forest_areas.append(forest_area)
+    burn_areas.append(burn_area)
+    ax2.set_xlim(0,len(forest_areas))
+    g1.set_data(list(range(len(open_areas))),open_areas)
+    g2.set_data(list(range(len(forest_areas))),forest_areas)
+    g3.set_data(list(range(len(burn_areas))),burn_areas)
     animate.X = sim(animate.X)
     the_plot.pyplot(plt)
     
